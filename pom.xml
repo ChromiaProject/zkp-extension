@@ -173,26 +173,6 @@
             </plugin>
 
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <executions>
-                    <!-- Ensure we load all the jars from base image -->
-                    <execution>
-                        <id>copy-dependencies</id>
-                        <phase>prepare-package</phase>
-                        <goals>
-                            <goal>copy-dependencies</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>target/dependency</outputDirectory>
-                            <includeScope>runtime</includeScope>
-                            <excludeTypes>pom</excludeTypes>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
                 <groupId>net.postchain.rell</groupId>
                 <artifactId>rell-maven-plugin</artifactId>
                 <version>${rell.maven.plugin.version}</version>
@@ -258,20 +238,6 @@
                     <from>
                         <image>registry.gitlab.com/chromaway/core-tools/chromia-images/java21-postgres16-ubuntu:1.0.2@sha256:35e411d15a38988975d63008eb0685cc6ff0120c11e4a4dce1d942876051bbf8</image>
                     </from>
-                    <!-- Include all dependencies -->
-                    <extraDirectories>
-                        <paths>
-                            <path>
-                                <from>target/dependency</from>
-                                <into>/opt/chromaway/postchain/lib</into>
-                            </path>
-                            <path>
-                                <from>src/main/jib/opt/chromaway/postchain</from>
-                                <into>/opt/chromaway/postchain</into>
-                            </path>
-                        </paths>
-                    </extraDirectories>
-
                     <container>
                         <appRoot>/opt/chromaway/postchain</appRoot>
                         <workingDirectory>/opt/chromaway/postchain</workingDirectory>
