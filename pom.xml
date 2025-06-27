@@ -25,8 +25,9 @@
         <kotlin.compiler.jvmTarget>21</kotlin.compiler.jvmTarget>
         <kotlin.code.style>obsolete</kotlin.code.style> <!-- Kotlin obsolete IntelliJ IDEA codestyle -->
 
-        <postchain-chromia.version>3.32.1</postchain-chromia.version>
-        <rell.maven.plugin.version>0.12.2</rell.maven.plugin.version>
+        <postchain-chromia.version>3.32.2</postchain-chromia.version>
+        <postchain.version>3.40.0</postchain.version>
+        <rell.maven.plugin.version>0.14.1</rell.maven.plugin.version>
 
         <junit.version>5.9.1</junit.version>
         <log4j.version>2.23.1</log4j.version>
@@ -41,23 +42,77 @@
         <image.name>chromaway/zkp-extension-chromia-subnode</image.name>
     </properties>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>net.postchain</groupId>
+                <artifactId>postchain</artifactId>
+                <version>${postchain.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.junit</groupId>
+                <artifactId>junit-bom</artifactId>
+                <version>${junit.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.jetbrains.kotlin</groupId>
+                <artifactId>kotlin-bom</artifactId>
+                <version>${kotlin.version}</version>
+                <scope>import</scope>
+                <type>pom</type>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
+        <dependency>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-stdlib</artifactId>
+            <version>${kotlin.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.github.microutils</groupId>
+            <artifactId>kotlin-logging-jvm</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>net.postchain.images</groupId>
             <artifactId>chromia-subnode</artifactId>
             <version>${postchain-chromia.version}</version>
         </dependency>
 
+        <!-- Zero knowledge proof validation -->
         <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-core</artifactId>
-            <version>${log4j.version}</version>
+            <groupId>org.hyperledger.besu</groupId>
+            <artifactId>gnark</artifactId>
+            <version>1.3.0</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-slf4j-impl</artifactId>
-            <version>${log4j.version}</version>
-            <scope>runtime</scope>
+            <groupId>org.hyperledger.besu</groupId>
+            <artifactId>besu-native-common</artifactId>
+            <version>1.3.0</version>
+        </dependency>
+
+        <!-- Test -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.willowtreeapps.assertk</groupId>
+            <artifactId>assertk-jvm</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.postchain</groupId>
+            <artifactId>postchain-devtools</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
@@ -66,9 +121,62 @@
         <sourceDirectory>${project.basedir}/src/main/kotlin</sourceDirectory>
         <plugins>
             <plugin>
+                <groupId>org.jetbrains.kotlin</groupId>
+                <artifactId>kotlin-maven-plugin</artifactId>
+                <version>${kotlin.version}</version>
+                <executions>
+                    <execution>
+                        <id>compile</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                        <configuration>
+                            <sourceDirs>
+                                <sourceDir>${project.basedir}/src/main/kotlin</sourceDir>
+                                <sourceDir>${project.basedir}/src/main/java</sourceDir>
+                            </sourceDirs>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>test-compile</id>
+                        <goals>
+                            <goal>test-compile</goal>
+                        </goals>
+                        <configuration>
+                            <sourceDirs>
+                                <sourceDir>${project.basedir}/src/test/kotlin</sourceDir>
+                                <sourceDir>${project.basedir}/src/test/java</sourceDir>
+                                <sourceDir>${project.basedir}/target/generated-test-sources</sourceDir>
+                            </sourceDirs>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <configuration>
+                    <includes>
+                        <include>**/*IT.java</include>
+                    </includes>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
                 <executions>
+                    <!-- Ensure we load all the jars from base image -->
                     <execution>
                         <id>copy-dependencies</id>
                         <phase>prepare-package</phase>
@@ -78,6 +186,51 @@
                         <configuration>
                             <outputDirectory>target/dependency</outputDirectory>
                             <includeScope>runtime</includeScope>
+                            <excludeTypes>pom</excludeTypes>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>net.postchain.rell</groupId>
+                <artifactId>rell-maven-plugin</artifactId>
+                <version>${rell.maven.plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>rell-compile-zkp</id>
+                        <phase>generate-test-resources</phase>
+                        <goals>
+                            <goal>rell-compile</goal>
+                        </goals>
+                        <configuration>
+                            <source>${project.basedir}/rell/src</source>
+                            <target>${project.build.directory}/test-classes/zkp</target>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>rell-client-gen-zkp</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>rell-generate-client</goal>
+                        </goals>
+                        <configuration>
+                            <source>${project.basedir}/rell/src</source>
+                            <target>${project.build.directory}/generated-sources/rell-client-zkp</target>
+                            <packageName>net.postchain.zkp.rell</packageName>
+                            <mainModules>
+                                <mainModule>lib.zkp.test.plonk_test_chain</mainModule>
+                            </mainModules>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>rell-test</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>rell-integration-test</goal>
+                        </goals>
+                        <configuration>
+                            <skip>${skipTests}</skip>
                         </configuration>
                     </execution>
                 </executions>
@@ -103,7 +256,7 @@
                 <configuration>
                     <allowInsecureRegistries>false</allowInsecureRegistries>
                     <from>
-                        <image>registry.gitlab.com/chromaway/core-tools/chromia-images/java21-postgres16-ubuntu:1.0.1@sha256:100d498d697b9c065674c533d3a3eece1647c4a26463c506afd118b27b401284</image>
+                        <image>registry.gitlab.com/chromaway/core-tools/chromia-images/java21-postgres16-ubuntu:1.0.2@sha256:35e411d15a38988975d63008eb0685cc6ff0120c11e4a4dce1d942876051bbf8</image>
                     </from>
                     <!-- Include all dependencies -->
                     <extraDirectories>
@@ -266,6 +419,13 @@
             <url>https://gitlab.com/api/v4/projects/33481005/packages/maven</url>
         </repository>
     </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>rellmaven</id>
+            <url>https://gitlab.com/api/v4/projects/37668820/packages/maven</url>
+        </pluginRepository>
+    </pluginRepositories>
 
     <distributionManagement>
         <repository>

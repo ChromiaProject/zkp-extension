@@ -1,0 +1,78 @@
+Configuration:
+  name: Default
+
+  Properties:
+    Property:
+    - name: logs
+      value: "logs"
+    - name: logfile
+      value: "test"
+    - name: logpattern
+      value: "%-5level %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} --%notEmpty{ [%notEmpty{node=%.-8X{node.pubkey}}%notEmpty{, bc-rid=%.-2X{blockchainRID}:%.4X{blockchainRID}}%notEmpty{, chain-id=%X{chainIID}}]:} %msg%n"
+
+  Appenders:
+    Console:
+      - name: ConsoleAppender
+        PatternLayout:
+          pattern: ${logpattern}
+      - name: SimpleConsoleAppender
+        PatternLayout:
+          pattern: "+++++ %d{yyyy-MM-dd HH:mm:ss.SSS} %msg%n"
+    File:
+      - name: FileAppender
+        fileName: "${logs}/${logfile}.log"
+        PatternLayout:
+          Pattern: ${logpattern}
+      - name: SimpleFileAppender
+        fileName: "${logs}/${logfile}.log"
+        PatternLayout:
+          Pattern: "+++++ %d{yyyy-MM-dd HH:mm:ss.SSS} %msg%n"
+
+
+  Loggers:
+
+    Root:
+      level: warn
+      AppenderRef:
+      - ref: ConsoleAppender
+      - ref: FileAppender
+
+    Logger:
+      - name: net.postchain
+        level: debug
+        additivity: false
+        AppenderRef:
+        - ref: ConsoleAppender
+          level: warn
+        - ref: FileAppender
+
+      - name: net.postchain.d1
+        level: debug
+        additivity: false
+        AppenderRef:
+        - ref: ConsoleAppender
+        - ref: FileAppender
+
+      - name: net.postchain.hybridcompute
+        level: info
+        additivity: false
+        AppenderRef:
+        - ref: ConsoleAppender
+        - ref: FileAppender
+
+      - name: net.postchain.ebft.syncmanager.common
+        level: error
+
+      - name: net.postchain.devtools.IntegrationTestSetup
+        level: debug
+        additivity: false
+        AppenderRef:
+          - ref: SimpleConsoleAppender
+          - ref: SimpleFileAppender
+
+      - name: net.postchain.devtools.ConfigFileBasedIntegrationTest
+        level: debug
+        additivity: false
+        AppenderRef:
+          - ref: SimpleConsoleAppender
+          - ref: SimpleFileAppender
