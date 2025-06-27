@@ -1,6 +1,6 @@
 # ZKP Extension
 
-Extension for integrating Postchain with Stork price oracle: https://www.stork.network/
+Extension for Zero Knowledge Proofs on Postchain.
 
 ## Registration
 
