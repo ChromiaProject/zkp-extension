@@ -2,8 +2,11 @@ package net.postchain.zkp.plonk
 
 import net.postchain.core.TxEContext
 import net.postchain.gtv.GtvArray
+import net.postchain.gtv.GtvType
+import net.postchain.gtx.ArgumentMetadata
 import net.postchain.gtx.GTXOpMistake
 import net.postchain.gtx.GTXOperation
+import net.postchain.gtx.OperationMetadata
 import net.postchain.gtx.data.ExtOpData
 import net.postchain.zkp.ZKPGTXModuleContext
 
@@ -14,6 +17,12 @@ class PlonkVerifyGTXOperation(
 
     companion object {
         const val OP_NAME = "zkp_plonk_verify"
+
+        val metadata = OperationMetadata(args = listOf(
+                ArgumentMetadata(name = "verification_key_id", gtvTypes = setOf(GtvType.STRING)),
+                ArgumentMetadata(name = "proof", gtvTypes = setOf(GtvType.ARRAY)),
+                ArgumentMetadata(name = "public_signals", gtvTypes = setOf(GtvType.ARRAY), extendedType = "list<big_integer>"),
+        ))
     }
 
     override fun apply(ctx: TxEContext) = true
