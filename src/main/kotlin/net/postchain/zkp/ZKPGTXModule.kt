@@ -23,7 +23,7 @@ class ZKPGTXModule : SimpleGTXModule<ZKPGTXModuleContext>(
 
     override fun initializeDB(ctx: EContext) {}
 
-    override fun initializeContext(configuration: BlockchainConfiguration, postchainContext: PostchainContext) {
+    override fun initializeContext(configuration: BlockchainConfiguration, postchainContext: PostchainContext, ctx: EContext) {
         conf.plonk = ZKPGTXPlonkModuleContext(
                 configuration.rawConfig["zkp"]?.get("plonk")?.get("verification_keys")?.asDict()?.map {
                     it.key to it.value.toObject<PlonkVerificationKey>()

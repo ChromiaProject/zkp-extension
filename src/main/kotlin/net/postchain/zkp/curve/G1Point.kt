@@ -4,7 +4,7 @@ import net.postchain.common.exception.UserMistake
 import net.postchain.gtv.mapper.Name
 import java.math.BigInteger
 
-data class G1Point(@Name("x") val x: BigInteger, @Name("y") val y: BigInteger) {
+data class G1Point(@param:Name("x") val x: BigInteger, @param:Name("y") val y: BigInteger) {
     companion object {
         /**
          * Creates a G1Point from coordinates that are either at infinity or already in affine form.
