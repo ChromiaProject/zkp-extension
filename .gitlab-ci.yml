@@ -100,10 +100,10 @@ dependency-check:
 
 container-scanning:
   variables:
-    REGISTRY: registry.gitlab.com/chromaway/core/zkp-extension-chromia-subnode
+    REGISTRY: registry.gitlab.com/chromaway/core/zkp-extension
   parallel:
     matrix:
-      - IMAGE: [ zkp-chromia-subnode ]
+      - IMAGE: [ chromaway/zkp-extension-chromia-subnode ]
         VERSION: [ LATEST, LATEST_SNAPSHOT ]
   only:
     variables:
